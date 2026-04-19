@@ -89,13 +89,15 @@ def user_menu(acc):
             print("Invalid Choice!")
 
 
-# MAIN PROGRAM
 if __name__ == "__main__":
-    while True:
-        print("\n--- BANK SYSTEM ---")
-        print("1. Create Account")
-        print("2. Login")
-        print("3. Exit")
+    print("Running Bank System Test...")
+
+    acc = Account("Vishal", "1234")
+
+    acc.deposit(1000)
+    acc.withdraw(200)
+    acc.check_balance()
+    acc.show_transactions()
 
         try:
             choice = int(input("Enter choice: "))
