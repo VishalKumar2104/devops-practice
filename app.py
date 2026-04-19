@@ -1,10 +1,4 @@
-from flask import Flask
-
-app=Flask(__name__)
-
-@app.route("/")
-def home():
-    return class movie:
+class movie:
     def __init__(self, name, seats):
         self.name = name
         self.availableSeats = seats
@@ -18,7 +12,12 @@ class booking:
 
 
 # Data storage
-movies = []
+movies = [
+    movie("Leo", 50),
+    movie("Jailer", 40),
+    movie("Avengers", 30)
+]
+
 bookings = []
 
 
@@ -44,7 +43,7 @@ def bookTicket():
     if seats <= m.availableSeats:
         m.availableSeats -= seats
         bookings.append(booking(name, m.name, seats))
-        print("Booked!")
+        print("Booked successfully!")
     else:
         print("Not enough seats!")
 
@@ -61,7 +60,7 @@ def cancelTicket():
                     m.availableSeats += b.seats
 
             bookings.pop(i)
-            print("Cancelled!")
+            print("Booking cancelled!")
             return
 
     print("No booking found!")
@@ -77,33 +76,32 @@ def viewBookings():
         print(f"{b.username} | {b.movieName} | {b.seats}")
 
 
-# Main program
-movies.append(movie("Leo", 50))
-movies.append(movie("Jailer", 40))
-movies.append(movie("Avengers", 30))
+# MAIN PROGRAM
+if __name__ == "__main__":
+    while True:
+        print("\nMOVIE TICKET BOOKING SYSTEM")
+        print("1. Show Movies")
+        print("2. Book Ticket")
+        print("3. Cancel Ticket")
+        print("4. View Bookings")
+        print("5. Exit")
 
-while True:
-    print("\nMOVIE TICKET BOOKING SYSTEM")
-    print("1. Show Movies")
-    print("2. Book Ticket")
-    print("3. Cancel Ticket")
-    print("4. View Bookings")
-    print("5. Exit")
+        try:
+            choice = int(input("Enter choice: "))
+        except ValueError:
+            print("Enter a valid number!")
+            continue
 
-    choice = int(input("Enter choice: "))
-
-    if choice == 1:
-        showMovies()
-    elif choice == 2:
-        bookTicket()
-    elif choice == 3:
-        cancelTicket()
-    elif choice == 4:
-        viewBookings()
-    elif choice == 5:
-        print("Thank You!")
-        break
-    else:
-        print("Invalid choice!")
-
-app.run(host="0.0.0.0",port=5001)
+        if choice == 1:
+            showMovies()
+        elif choice == 2:
+            bookTicket()
+        elif choice == 3:
+            cancelTicket()
+        elif choice == 4:
+            viewBookings()
+        elif choice == 5:
+            print("Thank You!")
+            break
+        else:
+            print("Invalid choice!")
