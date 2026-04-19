@@ -4,7 +4,7 @@ app=Flask(__name__)
 
 @app.route("/")
 def home():
-    return "class movie:
+    return class movie:
     def __init__(self, name, seats):
         self.name = name
         self.availableSeats = seats
@@ -105,5 +105,5 @@ while True:
         break
     else:
         print("Invalid choice!")
-"
+
 app.run(host="0.0.0.0",port=5001)
