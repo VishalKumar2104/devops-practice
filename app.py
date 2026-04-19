@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+# Account class
 class Account:
     def __init__(self, username, password):
         self.username = username
@@ -9,110 +10,92 @@ class Account:
         self.balance = 0.0
         self.transactions = []
 
-    def deposit(self, amount):
-        self.balance += amount
-        self.transactions.append(f"Deposited: {amount}")
-        print("Amount Deposited Successfully!")
-
-    def withdraw(self, amount):
-        if amount <= self.balance:
-            self.balance -= amount
-            self.transactions.append(f"Withdrawn: {amount}")
-            print("Amount Withdrawn Successfully!")
-        else:
-            print("Insufficient Balance!")
-
-    def check_balance(self):
-        print(f"Current Balance: {self.balance}")
-
-    def show_transactions(self):
-        print("Transaction History:")
-        for t in self.transactions:
-            print(t)
-
-
-# Storage (like HashMap in Java)
 accounts = {}
 
+# Home route
+@app.route("/")
+def home():
+    return "Bank System Running on AWS 🚀"
 
+
+# Create account
+@app.route("/create", methods=["POST"])
 def create_account():
-    username = input("Enter Username: ")
-    password = input("Enter Password: ")
+    data = request.get_json()
+    username = data["username"]
+    password = data["password"]
 
     if username in accounts:
-        print("Username already exists!")
-        return
+        return jsonify({"msg": "User already exists"})
 
     accounts[username] = Account(username, password)
-    print("Account Created Successfully!")
+    return jsonify({"msg": "Account created successfully"})
 
 
+# Login
+@app.route("/login", methods=["POST"])
 def login():
-    username = input("Enter Username: ")
-    password = input("Enter Password: ")
+    data = request.get_json()
+    username = data["username"]
+    password = data["password"]
 
     if username in accounts and accounts[username].password == password:
-        print("Login Successful!")
-        user_menu(accounts[username])
+        return jsonify({"msg": "Login successful"})
     else:
-        print("Invalid Credentials!")
+        return jsonify({"msg": "Invalid credentials"})
 
 
-def user_menu(acc):
-    while True:
-        print("\n--- USER MENU ---")
-        print("1. Deposit")
-        print("2. Withdraw")
-        print("3. Check Balance")
-        print("4. Transactions")
-        print("5. Logout")
+# Deposit
+@app.route("/deposit", methods=["POST"])
+def deposit():
+    data = request.get_json()
+    username = data["username"]
+    amount = float(data["amount"])
 
-        try:
-            choice = int(input("Enter choice: "))
-        except ValueError:
-            print("Enter a valid number!")
-            continue
+    if username in accounts:
+        acc = accounts[username]
+        acc.balance += amount
+        acc.transactions.append(f"Deposited {amount}")
+        return jsonify({"msg": "Deposited", "balance": acc.balance})
+    
+    return jsonify({"msg": "User not found"})
 
-        if choice == 1:
-            amount = float(input("Enter Amount: "))
-            acc.deposit(amount)
-        elif choice == 2:
-            amount = float(input("Enter Amount: "))
-            acc.withdraw(amount)
-        elif choice == 3:
-            acc.check_balance()
-        elif choice == 4:
-            acc.show_transactions()
-        elif choice == 5:
-            return
+
+# Withdraw
+@app.route("/withdraw", methods=["POST"])
+def withdraw():
+    data = request.get_json()
+    username = data["username"]
+    amount = float(data["amount"])
+
+    if username in accounts:
+        acc = accounts[username]
+        if amount <= acc.balance:
+            acc.balance -= amount
+            acc.transactions.append(f"Withdrawn {amount}")
+            return jsonify({"msg": "Withdrawn", "balance": acc.balance})
         else:
-            print("Invalid Choice!")
+            return jsonify({"msg": "Insufficient balance"})
+    
+    return jsonify({"msg": "User not found"})
 
 
-if __name__ == "__main__":
-    print("Running Bank System Test...")
+# Check balance
+@app.route("/balance/<username>")
+def balance(username):
+    if username in accounts:
+        return jsonify({"balance": accounts[username].balance})
+    return jsonify({"msg": "User not found"})
 
-    acc = Account("Vishal", "1234")
 
-    acc.deposit(1000)
-    acc.withdraw(200)
-    acc.check_balance()
-    acc.show_transactions()
+# Transactions
+@app.route("/transactions/<username>")
+def transactions(username):
+    if username in accounts:
+        return jsonify(accounts[username].transactions)
+    return jsonify({"msg": "User not found"})
 
-        try:
-            choice = int(input("Enter choice: "))
-        except ValueError:
-            print("Enter a valid number!")
-            continue
 
-        if choice == 1:
-            create_account()
-        elif choice == 2:
-            login()
-        elif choice == 3:
-            print("Thank You!")
-            break
-        else:
-            print("Invalid Choice!")
+# Run server on AWS
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
