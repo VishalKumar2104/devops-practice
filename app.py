@@ -2,94 +2,115 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# Classes
-class movie:
-    def __init__(self, name, seats):
-        self.name = name
-        self.availableSeats = seats
-
-
-class booking:
-    def __init__(self, username, movieName, seats):
+class Account:
+    def __init__(self, username, password):
         self.username = username
-        self.movieName = movieName
-        self.seats = seats
+        self.password = password
+        self.balance = 0.0
+        self.transactions = []
+
+    def deposit(self, amount):
+        self.balance += amount
+        self.transactions.append(f"Deposited: {amount}")
+        print("Amount Deposited Successfully!")
+
+    def withdraw(self, amount):
+        if amount <= self.balance:
+            self.balance -= amount
+            self.transactions.append(f"Withdrawn: {amount}")
+            print("Amount Withdrawn Successfully!")
+        else:
+            print("Insufficient Balance!")
+
+    def check_balance(self):
+        print(f"Current Balance: {self.balance}")
+
+    def show_transactions(self):
+        print("Transaction History:")
+        for t in self.transactions:
+            print(t)
 
 
-# Data
-movies = [
-    movie("Leo", 50),
-    movie("Jailer", 40),
-    movie("Avengers", 30)
-]
-
-bookings = []
+# Storage (like HashMap in Java)
+accounts = {}
 
 
-# Show movies
-@app.route("/")
-def show_movies():
-    result = []
-    for m in movies:
-        result.append({
-            "movie": m.name,
-            "availableSeats": m.availableSeats
-        })
-    return jsonify(result)
+def create_account():
+    username = input("Enter Username: ")
+    password = input("Enter Password: ")
+
+    if username in accounts:
+        print("Username already exists!")
+        return
+
+    accounts[username] = Account(username, password)
+    print("Account Created Successfully!")
 
 
-# Book ticket
-@app.route("/book", methods=["POST"])
-def book_ticket():
-    data = request.get_json()
+def login():
+    username = input("Enter Username: ")
+    password = input("Enter Password: ")
 
-    name = data["name"]
-    movie_name = data["movie"]
-    seats = int(data["seats"])
-
-    for m in movies:
-        if m.name == movie_name:
-            if seats <= m.availableSeats:
-                m.availableSeats -= seats
-                bookings.append(booking(name, movie_name, seats))
-                return jsonify({"message": "Booked successfully"})
-            else:
-                return jsonify({"message": "Not enough seats"})
-
-    return jsonify({"message": "Movie not found"})
+    if username in accounts and accounts[username].password == password:
+        print("Login Successful!")
+        user_menu(accounts[username])
+    else:
+        print("Invalid Credentials!")
 
 
-# Cancel ticket
-@app.route("/cancel", methods=["POST"])
-def cancel_ticket():
-    data = request.get_json()
-    name = data["name"]
+def user_menu(acc):
+    while True:
+        print("\n--- USER MENU ---")
+        print("1. Deposit")
+        print("2. Withdraw")
+        print("3. Check Balance")
+        print("4. Transactions")
+        print("5. Logout")
 
-    for i in range(len(bookings)):
-        b = bookings[i]
-        if b.username == name:
-            for m in movies:
-                if m.name == b.movieName:
-                    m.availableSeats += b.seats
+        try:
+            choice = int(input("Enter choice: "))
+        except ValueError:
+            print("Enter a valid number!")
+            continue
 
-            bookings.pop(i)
-            return jsonify({"message": "Cancelled successfully"})
-
-    return jsonify({"message": "No booking found"})
-
-
-# View bookings
-@app.route("/bookings")
-def view_bookings():
-    result = []
-    for b in bookings:
-        result.append({
-            "name": b.username,
-            "movie": b.movieName,
-            "seats": b.seats
-        })
-    return jsonify(result)
+        if choice == 1:
+            amount = float(input("Enter Amount: "))
+            acc.deposit(amount)
+        elif choice == 2:
+            amount = float(input("Enter Amount: "))
+            acc.withdraw(amount)
+        elif choice == 3:
+            acc.check_balance()
+        elif choice == 4:
+            acc.show_transactions()
+        elif choice == 5:
+            return
+        else:
+            print("Invalid Choice!")
 
 
+# MAIN PROGRAM
+if __name__ == "__main__":
+    while True:
+        print("\n--- BANK SYSTEM ---")
+        print("1. Create Account")
+        print("2. Login")
+        print("3. Exit")
+
+        try:
+            choice = int(input("Enter choice: "))
+        except ValueError:
+            print("Enter a valid number!")
+            continue
+
+        if choice == 1:
+            create_account()
+        elif choice == 2:
+            login()
+        elif choice == 3:
+            print("Thank You!")
+            break
+        else:
+            print("Invalid Choice!")
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
