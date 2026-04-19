@@ -1,3 +1,8 @@
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# Classes
 class movie:
     def __init__(self, name, seats):
         self.name = name
@@ -11,7 +16,7 @@ class booking:
         self.seats = seats
 
 
-# Data storage
+# Data
 movies = [
     movie("Leo", 50),
     movie("Jailer", 40),
@@ -21,87 +26,70 @@ movies = [
 bookings = []
 
 
-def showMovies():
-    print("\nAvailable Movies:")
-    for i in range(len(movies)):
-        print(f"{i+1}. {movies[i].name} | Seats: {movies[i].availableSeats}")
+# Show movies
+@app.route("/")
+def show_movies():
+    result = []
+    for m in movies:
+        result.append({
+            "movie": m.name,
+            "availableSeats": m.availableSeats
+        })
+    return jsonify(result)
 
 
-def bookTicket():
-    name = input("Enter name: ")
+# Book ticket
+@app.route("/book", methods=["POST"])
+def book_ticket():
+    data = request.get_json()
 
-    showMovies()
-    choice = int(input("Choose movie: "))
+    name = data["name"]
+    movie_name = data["movie"]
+    seats = int(data["seats"])
 
-    if choice < 1 or choice > len(movies):
-        print("Invalid choice!")
-        return
+    for m in movies:
+        if m.name == movie_name:
+            if seats <= m.availableSeats:
+                m.availableSeats -= seats
+                bookings.append(booking(name, movie_name, seats))
+                return jsonify({"message": "Booked successfully"})
+            else:
+                return jsonify({"message": "Not enough seats"})
 
-    m = movies[choice - 1]
-    seats = int(input("Seats: "))
-
-    if seats <= m.availableSeats:
-        m.availableSeats -= seats
-        bookings.append(booking(name, m.name, seats))
-        print("Booked successfully!")
-    else:
-        print("Not enough seats!")
+    return jsonify({"message": "Movie not found"})
 
 
-def cancelTicket():
-    name = input("Enter name: ")
+# Cancel ticket
+@app.route("/cancel", methods=["POST"])
+def cancel_ticket():
+    data = request.get_json()
+    name = data["name"]
 
     for i in range(len(bookings)):
         b = bookings[i]
-
         if b.username == name:
             for m in movies:
                 if m.name == b.movieName:
                     m.availableSeats += b.seats
 
             bookings.pop(i)
-            print("Booking cancelled!")
-            return
+            return jsonify({"message": "Cancelled successfully"})
 
-    print("No booking found!")
+    return jsonify({"message": "No booking found"})
 
 
-def viewBookings():
-    if not bookings:
-        print("No bookings!")
-        return
-
-    print("\nAll Bookings:")
+# View bookings
+@app.route("/bookings")
+def view_bookings():
+    result = []
     for b in bookings:
-        print(f"{b.username} | {b.movieName} | {b.seats}")
+        result.append({
+            "name": b.username,
+            "movie": b.movieName,
+            "seats": b.seats
+        })
+    return jsonify(result)
 
 
-# MAIN PROGRAM
 if __name__ == "__main__":
-    while True:
-        print("\nMOVIE TICKET BOOKING SYSTEM")
-        print("1. Show Movies")
-        print("2. Book Ticket")
-        print("3. Cancel Ticket")
-        print("4. View Bookings")
-        print("5. Exit")
-
-        try:
-            choice = int(input("Enter choice: "))
-        except ValueError:
-            print("Enter a valid number!")
-            continue
-
-        if choice == 1:
-            showMovies()
-        elif choice == 2:
-            bookTicket()
-        elif choice == 3:
-            cancelTicket()
-        elif choice == 4:
-            viewBookings()
-        elif choice == 5:
-            print("Thank You!")
-            break
-        else:
-            print("Invalid choice!")
+    app.run(host="0.0.0.0", port=5000)
