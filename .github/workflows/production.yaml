@@ -10,7 +10,7 @@ jobs:
 
       - name: get pem file
         run: |
-          echo "${{ secrets.secret }}" > key.pem
+          echo "${{ secrets.secretkey}}" > key.pem
           chmod 400 key.pem
           
       - name: copy app.py
